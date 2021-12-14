@@ -1,7 +1,7 @@
 from django.db.models import fields
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Image
+from .models import ImageCollageModel
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,5 +10,5 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Image
+        model = ImageCollageModel
         fields = ('user', 'image')
