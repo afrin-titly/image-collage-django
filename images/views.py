@@ -9,7 +9,7 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from decouple import config
 from rest_framework_simplejwt.authentication import JWTAuthentication
-import io, base64, os
+import io, base64, os, string, random
 from PIL import Image
 from datetime import datetime
 
@@ -55,7 +55,7 @@ class ImageCollage(APIView):
         try:
             img = image["url"].split("base64,")
             i = Image.open(io.BytesIO(base64.decodebytes(bytes(img[1], "utf-8"))))
-            filename = str(user)+"_"+str(now.strftime("%Y%m%d%H%M%S"))+"."+image["extention"]
+            filename = str(user)+"_"+ self.get_random_string(8)+"."+image["extention"]
             i.save("media/"+filename)
             s3.upload_file("media/"+filename, bucket, filename)
             print("Upload Successful")
@@ -87,17 +87,26 @@ class ImageCollage(APIView):
     else:
         print("No token is provided in the header or the header is missing")
 
-    user_images = ImageCollageModel.objects.all()
-    # TODO: loop through user images and show them in front
+    images = self.user_image_url(user)
+    return Response(images, status=status.HTTP_200_OK)
+
+
+  def user_image_url(self, user):
+    user_images = ImageCollageModel.objects.filter(user_id=user)
     print(user_images)
-    url = s3.generate_presigned_url('get_object',
-        Params={
-            'Bucket': bucket,
-            'Key': '2_20211213123752.jpg',
-        },
-        ExpiresIn=86400)
+    images = []
+    for image in user_images:
+        url = s3.generate_presigned_url('get_object',
+            Params={
+                'Bucket': bucket,
+                'Key': image.image,
+            },
+            ExpiresIn=86400)
+        images.append(url)
 
-    print(url)
-    return Response("comes successfully", status=status.HTTP_200_OK)
+    return images
 
-# "https://s3-ap-northeast-1.amazonaws.com/image-collage/2_20211213123752.jpg" % (location, bucket_name, key)
+  def get_random_string(self, length):
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
