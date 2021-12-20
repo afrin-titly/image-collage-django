@@ -40,11 +40,10 @@ class ImageCollage(APIView):
     if response is not None:
         user = response[1].payload['user_id']
     else:
-        print("No token is provided in the header or the header is missing")
+        return Response("No token is provided in the header or the header is missing", status=status.HTTP_401_UNAUTHORIZED)
 
-    # user = request.data['user']
 
-    # images = dict((request.data).lists())['image']
+
     images = request.data["images"]
     flag = 1
     arr = []
@@ -65,7 +64,6 @@ class ImageCollage(APIView):
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 arr.append(serializer.data)
-                # TODO: files was not removed
                 os.remove("media/"+filename)
             else:
                 flag = 0
@@ -93,7 +91,6 @@ class ImageCollage(APIView):
 
   def user_image_url(self, user):
     user_images = ImageCollageModel.objects.filter(user_id=user)
-    print(user_images)
     images = []
     for image in user_images:
         url = s3.generate_presigned_url('get_object',
