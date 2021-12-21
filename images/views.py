@@ -1,7 +1,7 @@
 from rest_framework import status
 from .models import ImageCollageModel
 from django.contrib.auth import get_user_model
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, viewsets
 from .serializers import UserSerializer, ImageSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -30,7 +30,7 @@ class UserList(generics.ListAPIView):
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
 
-class ImageCollage(APIView):
+class ImageCollage(viewsets.ModelViewSet):
     # permission_classes = (permissions.IsAuthenticated,)
 
 
@@ -43,7 +43,8 @@ class ImageCollage(APIView):
         return Response("No token is provided in the header or the header is missing", status=status.HTTP_401_UNAUTHORIZED)
 
 
-
+    print("-------")
+    print(request.data)
     images = request.data["images"]
     flag = 1
     arr = []
@@ -102,6 +103,17 @@ class ImageCollage(APIView):
         images.append(url)
 
     return images
+
+  def make_collage(self, request):
+    # TODO: make the collage
+
+    background = Image.new('RGB', 800, 600)
+    im = Image.open("media/test.jpeg")
+    im.thumbnail((150,150))
+    for i in range(0, 500, 100):
+      for j in range(0, 500, 100):
+        background.paste(im, (i,j))
+    background.show()
 
   def get_random_string(self, length):
     letters = string.ascii_lowercase
